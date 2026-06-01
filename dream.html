@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🌙 造梦空间 - Dream Weaver</title>
+    <style>
+        :root {
+            --bg-deep: #0a0a1a;
+            --purple-mist: #6b2fa0;
+            --pink-dream: #c44d8f;
+            --blue-ether: #3a6fd8;
+            --golden-light: #f0c27a;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            background: radial-gradient(ellipse at center, #1a0a2e 0%, #0d0d1a 40%, #050510 100%);
+            font-family: 'PingFang SC', 'Noto Serif SC', 'STSong', 'SimSun', 'KaiTi', '楷体', serif;
+            cursor: crosshair;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* ============ 星空画布 ============ */
+        #starCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        /* ============ 主容器 ============ */
+        .main-container {
+            position: relative;
+            z-index: 10;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none;
+        }
+
+        /* ============ 标题区域 ============ */
+        .title-area {
+            text-align: center;
+            margin-bottom: 2rem;
+            animation: titleFloat 6s ease-in-out infinite;
+        }
+
+        .moon-icon {
+            font-size: 5rem;
+            filter: drop-shadow(0 0 60px rgba(240, 194, 122, 0.6));
+            animation: moonGlow 3s ease-in-out infinite;
+            display: block;
+            line-height: 1;
+        }
+
+        .main-title {
+            font-size: clamp(2.2rem, 5vw, 4rem);
+            font-weight: 300;
+            letter-spacing: 0.15em;
+            background: linear-gradient(180deg,
+                    #f0e6d3 0%,
+                    #d4b8e8 30%,
+                    #c9a8e8 50%,
+                    #a8c8f0 70%,
+                    #f0d4e0 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: none;
+            filter: drop-shadow(0 0 30px rgba(180, 140, 220, 0.5));
+            margin-top: 0.3rem;
+        }
+
+        .subtitle {
+            font-size: 0.95rem;
+            letter-spacing: 0.25em;
+            color: rgba(200, 180, 220, 0.7);
+            margin-top: 0.5rem;
+            font-weight: 300;
+        }
+
+        @keyframes titleFloat {
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+            25% {
+                transform: translateY(-12px);
+            }
+            50% {
+                transform: translateY(-5px);
+            }
+            75% {
+                transform: translateY(-15px);
+            }
+        }
+
+        @keyframes moonGlow {
+            0%,
+            100% {
+                filter: drop-shadow(0 0 40px rgba(240, 194, 122, 0.5));
+            }
+            50% {
+                filter: drop-shadow(0 0 80px rgba(240, 194, 122, 0.9));
+            }
+        }
+
+        /* ============ 输入区域 ============ */
+        .input-area {
+            pointer-events: all;
+            display: flex;
+            gap: 0.8rem;
+            align-items: center;
+            background: rgba(30, 20, 50, 0.5);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(180, 150, 220, 0.3);
+            border-radius: 60px;
+            padding: 0.4rem 0.4rem 0.4rem 1.6rem;
+            box-shadow:
+                0 0 60px rgba(120, 70, 180, 0.2),
+                0 0 120px rgba(120, 70, 180, 0.08),
+                inset 0 0 30px rgba(200, 160, 240, 0.05);
+            transition: all 0.5s ease;
+            max-width: 90vw;
+        }
+
+        .input-area:focus-within {
+            border-color: rgba(200, 160, 240, 0.6);
+            box-shadow:
+                0 0 80px rgba(140, 80, 200, 0.35),
+                0 0 160px rgba(140, 80, 200, 0.15),
+                0 0 30px rgba(200, 160, 240, 0.2);
+            transform: translateY(-3px);
+        }
+
+        #dreamInput {
+            background: transparent;
+            border: none;
+            outline: none;
+            color: #e8ddf5;
+            font-size: 1.1rem;
+            font-family: inherit;
+            letter-spacing: 0.05em;
+            width: 280px;
+            max-width: 50vw;
+            min-width: 180px;
+            caret-color: #c9a8e8;
+        }
+
+        #dreamInput::placeholder {
+            color: rgba(180, 160, 200, 0.45);
+            letter-spacing: 0.08em;
+            font-size: 0.95rem;
+        }
+
+        #weaveBtn {
+            background: linear-gradient(135deg, #6b3fa0 0%, #8b4db8 30%, #a055c8 60%, #7b40b0 100%);
+            border: none;
+            color: #f0e0ff;
+            font-family: inherit;
+            font-size: 1rem;
+            letter-spacing: 0.1em;
+            padding: 0.75rem 2rem;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.4s ease;
+            white-space: nowrap;
+            font-weight: 400;
+            box-shadow: 0 4px 25px rgba(120, 50, 180, 0.4);
+            position: relative;
+            overflow: hidden;
+        }
+
+        #weaveBtn::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.25) 0%, transparent 60%);
+            opacity: 0;
+            transition: opacity 0.4s;
+        }
+
+        #weaveBtn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 40px rgba(150, 70, 210, 0.6);
+            background: linear-gradient(135deg, #7b45b0 0%, #9b55c8 30%, #b065d8 60%, #8b50c0 100%);
+        }
+
+        #weaveBtn:hover::after {
+            opacity: 1;
+        }
+
+        #weaveBtn:active {
+            transform: scale(0.95);
+            transition: transform 0.15s ease;
+        }
+
+        /* ============ 飘浮的梦想泡泡 ============ */
+        .dream-bubble {
+            position: fixed;
+            pointer-events: none;
+            z-index: 5;
+            padding: 0.7rem 1.5rem;
+            background: rgba(40, 25, 60, 0.55);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(200, 170, 230, 0.4);
+            border-radius: 40px;
+            color: #e0d0f5;
+            font-family: inherit;
+            font-size: 0.9rem;
+            letter-spacing: 0.06em;
+            white-space: nowrap;
+            animation: bubbleFloat linear forwards;
+            box-shadow:
+                0 0 30px rgba(150, 100, 200, 0.3),
+                inset 0 0 20px rgba(200, 160, 240, 0.08);
+            text-shadow: 0 0 15px rgba(200, 170, 230, 0.5);
+            transform-origin: center center;
+        }
+
+        @keyframes bubbleFloat {
+            0% {
+                opacity: 0;
+                transform: translateY(0) translateX(0) scale(0.3);
+            }
+            8% {
+                opacity: 1;
+                transform: translateY(-30px) translateX(15px) scale(1.05);
+            }
+            15% {
+                transform: translateY(-60px) translateX(-10px) scale(0.95);
+            }
+            25% {
+                transform: translateY(-100px) translateX(20px) scale(1.02);
+            }
+            40% {
+                transform: translateY(-180px) translateX(-25px) scale(0.9);
+            }
+            55% {
+                transform: translateY(-250px) translateX(15px) scale(1);
+            }
+            70% {
+                transform: translateY(-340px) translateX(-15px) scale(0.85);
+                opacity: 0.9;
+            }
+            85% {
+                transform: translateY(-430px) translateX(10px) scale(0.6);
+                opacity: 0.5;
+            }
+            100% {
+                transform: translateY(-550px) translateX(-5px) scale(0.15);
+                opacity: 0;
+            }
+        }
+
+        /* ============ 提示文字 ============ */
+        .hint-text {
+            position: fixed;
+            bottom: 2.5rem;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+            color: rgba(180, 160, 210, 0.5);
+            font-size: 0.8rem;
+            letter-spacing: 0.1em;
+            pointer-events: none;
+            animation: hintPulse 4s ease-in-out infinite;
+        }
+
+        @keyframes hintPulse {
+            0%,
+            100% {
+                opacity: 0.35;
+            }
+            50% {
+                opacity: 0.75;
+            }
+        }
+
+        /* ============ 响应式 ============ */
+        @media (max-width: 600px) {
+            .input-area {
+                gap: 0.4rem;
+                padding: 0.3rem 0.3rem 0.3rem 1rem;
+                border-radius: 50px;
+            }
+            #dreamInput {
+                width: 160px;
+                font-size: 0.9rem;
+            }
+            #weaveBtn {
+                padding: 0.6rem 1.3rem;
+                font-size: 0.85rem;
+            }
+            .moon-icon {
+                font-size: 3.5rem;
+            }
+            .main-title {
+                font-size: 1.8rem;
+            }
+            .subtitle {
+                font-size: 0.75rem;
+            }
+            .dream-bubble {
+                font-size: 0.75rem;
+                padding: 0.5rem 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 星空画布 -->
+    <canvas id="starCanvas"></canvas>
+
+    <!-- 主内容 -->
+    <div class="main-container">
+        <div class="title-area">
+            <span class="moon-icon">🌙</span>
+            <h1 class="main-title">造 梦 空 间</h1>
+            <p class="subtitle">— 将心愿编织成星 · Dream Weaver —</p>
+        </div>
+
+        <div class="input-area" id="inputArea">
+            <input
+            type="text"
+            id="dreamInput"
+            placeholder="在此写下你的梦..."
+            maxlength="40"
+            autocomplete="off"
+            >
+            <button id="weaveBtn">✨ 编织</button>
+        </div>
+    </div>
+
+    <p class="hint-text">💫 写下梦想，让它飘向星空 💫</p>
+
+    <script>
+        (function() {
+            // ============ 星空画布 ============
+            const canvas = document.getElementById('starCanvas');
+            const ctx = canvas.getContext('2d');
+            let stars = [];
+            let shootingStars = [];
+            let w, h;
+
+            function resizeCanvas() {
+                w = canvas.width = window.innerWidth;
+                h = canvas.height = window.innerHeight;
+                initStars();
+            }
+
+            function initStars() {
+                stars = [];
+                const count = Math.floor((w * h) / 1800);
+                for (let i = 0; i < count; i++) {
+                    stars.push({
+                        x: Math.random() * w,
+                        y: Math.random() * h,
+                        r: Math.random() * 2.2 + 0.4,
+                        baseAlpha: Math.random() * 0.7 + 0.3,
+                        alpha: Math.random() * 0.7 + 0.3,
+                        twinkleSpeed: Math.random() * 0.02 + 0.005,
+                        twinklePhase: Math.random() * Math.PI * 2,
+                        hue: Math.random() < 0.3 ?
+                            Math.random() * 40 + 30 // 金色
+                            :
+                            Math.random() < 0.5 ?
+                            Math.random() * 40 + 250 // 蓝紫
+                            :
+                            Math.random() * 30 + 300, // 粉紫
+                    });
+                }
+            }
+
+            function spawnShootingStar() {
+                const fromLeft = Math.random() < 0.5;
+                const startX = fromLeft ? Math.random() * w * 0.5 : w - Math.random() * w * 0.5;
+                const startY = Math.random() * h * 0.4;
+                const angle = fromLeft ?
+                    Math.random() * 0.5 + 0.15 // 向右下
+                    :
+                    Math.random() * 0.5 + 2.65; // 向左下
+                const speed = Math.random() * 6 + 8;
+                const length = Math.random() * 120 + 80;
+                shootingStars.push({
+                    x: startX,
+                    y: startY,
+                    vx: Math.cos(angle) * speed,
+                    vy: Math.sin(angle) * speed,
+                    life: 1,
+                    decay: Math.random() * 0.015 + 0.02,
+                    length: length,
+                    hue: Math.random() < 0.5 ? 40 : 280,
+                });
+            }
+
+            function drawStars() {
+                ctx.clearRect(0, 0, w, h);
+
+                // 绘制静态星星
+                for (const star of stars) {
+                    star.alpha = star.baseAlpha + Math.sin(Date.now() * star.twinkleSpeed + star.twinklePhase) *
+                        0.25;
+                    star.alpha = Math.max(0.15, Math.min(1, star.alpha));
+
+                    ctx.beginPath();
+                    ctx.arc(star.x, star.y, star.r, 0, Math.PI * 2);
+                    ctx.fillStyle = `hsla(${star.hue}, 60%, 80%, ${star.alpha})`;
+                    ctx.fill();
+
+                    // 光晕
+                    if (star.r > 1.3 && star.alpha > 0.6) {
+                        ctx.beginPath();
+                        ctx.arc(star.x, star.y, star.r * 2.5, 0, Math.PI * 2);
+                        ctx.fillStyle = `hsla(${star.hue}, 60%, 75%, ${star.alpha * 0.15})`;
+                        ctx.fill();
+                    }
+                }
+
+                // 绘制流星
+                for (let i = shootingStars.length - 1; i >= 0; i--) {
+                    const ss = shootingStars[i];
+                    const tailX = ss.x - ss.vx * ss.length * 0.06;
+                    const tailY = ss.y - ss.vy * ss.length * 0.06;
+
+                    const gradient = ctx.createLinearGradient(ss.x, ss.y, tailX, tailY);
+                    gradient.addColorStop(0, `hsla(${ss.hue}, 80%, 90%, ${ss.life})`);
+                    gradient.addColorStop(1, `hsla(${ss.hue}, 80%, 70%, 0)`);
+
+                    ctx.beginPath();
+                    ctx.moveTo(ss.x, ss.y);
+                    ctx.lineTo(tailX, tailY);
+                    ctx.strokeStyle = gradient;
+                    ctx.lineWidth = 2;
+                    ctx.lineCap = 'round';
+                    ctx.stroke();
+
+                    // 头部光点
+                    ctx.beginPath();
+                    ctx.arc(ss.x, ss.y, 3, 0, Math.PI * 2);
+                    ctx.fillStyle = `hsla(${ss.hue}, 90%, 95%, ${ss.life})`;
+                    ctx.fill();
+                    ctx.beginPath();
+                    ctx.arc(ss.x, ss.y, 8, 0, Math.PI * 2);
+                    ctx.fillStyle = `hsla(${ss.hue}, 80%, 85%, ${ss.life * 0.3})`;
+                    ctx.fill();
+
+                    ss.x += ss.vx;
+                    ss.y += ss.vy;
+                    ss.life -= ss.decay;
+
+                    if (ss.life <= 0) {
+                        shootingStars.splice(i, 1);
+                    }
+                }
+            }
+
+            function animateStars() {
+                drawStars();
+                // 随机生成流星
+                if (Math.random() < 0.008) {
+                    spawnShootingStar();
+                }
+                requestAnimationFrame(animateStars);
+            }
+
+            window.addEventListener('resize', resizeCanvas);
+            resizeCanvas();
+            animateStars();
+
+            // ============ 鼠标光点特效 ============
+            const mouseGlowCanvas = document.createElement('canvas');
+            mouseGlowCanvas.style.cssText = `
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 2;
+            pointer-events: none;
+          `;
+            document.body.appendChild(mouseGlowCanvas);
+            const mCtx = mouseGlowCanvas.getContext('2d');
+            mouseGlowCanvas.width = w;
+            mouseGlowCanvas.height = h;
+
+            let mouseX = -100;
+            let mouseY = -100;
+            let targetMouseX = -100;
+            let targetMouseY = -100;
+            const glowParticles = [];
+
+            document.addEventListener('mousemove', (e) => {
+                targetMouseX = e.clientX;
+                targetMouseY = e.clientY;
+                // 生成小光点
+                if (Math.random() < 0.6) {
+                    glowParticles.push({
+                        x: e.clientX + (Math.random() - 0.5) * 20,
+                        y: e.clientY + (Math.random() - 0.5) * 20,
+                        r: Math.random() * 2 + 0.8,
+                        life: 1,
+                        decay: Math.random() * 0.04 + 0.03,
+                        vx: (Math.random() - 0.5) * 1.5,
+                        vy: (Math.random() - 0.5) * 1.5 - 1,
+                    });
+                }
+            });
+
+            document.addEventListener('touchmove', (e) => {
+                if (e.touches.length > 0) {
+                    targetMouseX = e.touches[0].clientX;
+                    targetMouseY = e.touches[0].clientY;
+                }
+            }, { passive: true });
+
+            function animateMouseGlow() {
+                mCtx.clearRect(0, 0, mouseGlowCanvas.width, mouseGlowCanvas.height);
+                mouseGlowCanvas.width = w;
+                mouseGlowCanvas.height = h;
+
+                // 平滑跟随
+                mouseX += (targetMouseX - mouseX) * 0.15;
+                mouseY += (targetMouseY - mouseY) * 0.15;
+
+                // 主光晕
+                if (mouseX > -50 && mouseY > -50) {
+                    const grad = mCtx.createRadialGradient(mouseX, mouseY, 0, mouseX, mouseY, 80);
+                    grad.addColorStop(0, 'rgba(180, 140, 220, 0.25)');
+                    grad.addColorStop(0.4, 'rgba(140, 100, 200, 0.1)');
+                    grad.addColorStop(1, 'rgba(100, 60, 160, 0)');
+                    mCtx.fillStyle = grad;
+                    mCtx.beginPath();
+                    mCtx.arc(mouseX, mouseY, 80, 0, Math.PI * 2);
+                    mCtx.fill();
+                }
+
+                // 光点粒子
+                for (let i = glowParticles.length - 1; i >= 0; i--) {
+                    const p = glowParticles[i];
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    p.life -= p.decay;
+                    if (p.life <= 0) {
+                        glowParticles.splice(i, 1);
+                        continue;
+                    }
+                    mCtx.beginPath();
+                    mCtx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+                    mCtx.fillStyle = `rgba(210, 180, 240, ${p.life * 0.7})`;
+                    mCtx.fill();
+                }
+
+                // 限制粒子数量
+                if (glowParticles.length > 60) {
+                    glowParticles.splice(0, glowParticles.length - 60);
+                }
+
+                requestAnimationFrame(animateMouseGlow);
+            }
+            animateMouseGlow();
+
+            window.addEventListener('resize', () => {
+                mouseGlowCanvas.width = w;
+                mouseGlowCanvas.height = h;
+            });
+
+            // ============ 造梦逻辑 ============
+            const dreamInput = document.getElementById('dreamInput');
+            const weaveBtn = document.getElementById('weaveBtn');
+            const inputArea = document.getElementById('inputArea');
+
+            function createDreamBubble(text) {
+                if (!text.trim()) return;
+
+                const bubble = document.createElement('div');
+                bubble.className = 'dream-bubble';
+                bubble.textContent = '💭 ' + text.trim();
+
+                // 随机起始位置（在输入框附近）
+                const inputRect = inputArea.getBoundingClientRect();
+                const startX = inputRect.left + inputRect.width / 2 + (Math.random() - 0.5) * 200;
+                const startY = inputRect.top + (Math.random() - 0.5) * 60;
+
+                bubble.style.left = startX + 'px';
+                bubble.style.top = startY + 'px';
+
+                // 随机动画参数
+                const duration = Math.random() * 4 + 7; // 7-11秒
+                const driftX = (Math.random() - 0.5) * 180;
+                bubble.style.animationDuration = duration + 's';
+                bubble.style.setProperty('--drift-x', driftX + 'px');
+
+                // 修改动画使其有水平漂移
+                bubble.style.animation = `bubbleFloat ${duration}s linear forwards`;
+                bubble.style.animationDuration = duration + 's';
+
+                // 随机颜色微调
+                const hue = Math.random() * 40 + 260;
+                bubble.style.borderColor = `hsla(${hue}, 60%, 75%, 0.45)`;
+                bubble.style.boxShadow = `
+              0 0 30px hsla(${hue}, 50%, 60%, 0.3),
+              inset 0 0 20px hsla(${hue}, 50%, 65%, 0.08)
+            `;
+                bubble.style.textShadow = `0 0 15px hsla(${hue}, 50%, 70%, 0.5)`;
+
+                document.body.appendChild(bubble);
+
+                // 动画结束后移除
+                bubble.addEventListener('animationend', () => {
+                    if (bubble.parentNode) {
+                        bubble.remove();
+                    }
+                });
+
+                // 同时在泡泡起始位置产生一个小爆发粒子
+                spawnBurstParticles(startX, startY);
+            }
+
+            function spawnBurstParticles(x, y) {
+                const count = 18;
+                for (let i = 0; i < count; i++) {
+                    const angle = (Math.PI * 2 / count) * i + Math.random() * 0.3;
+                    const speed = Math.random() * 3 + 2;
+                    const particle = document.createElement('div');
+                    particle.style.cssText = `
+                position: fixed;
+                left: ${x}px;
+                top: ${y}px;
+                width: ${Math.random() * 5 + 2}px;
+                height: ${Math.random() * 5 + 2}px;
+                border-radius: 50%;
+                background: hsla(${Math.random() * 60 + 260}, 70%, 75%, 0.9);
+                pointer-events: none;
+                z-index: 6;
+                box-shadow: 0 0 8px hsla(${Math.random() * 60 + 260}, 70%, 70%, 0.7);
+                transition: all ${Math.random() * 0.6 + 0.6}s ease-out;
+              `;
+                    document.body.appendChild(particle);
+
+                    const dx = Math.cos(angle) * speed * 25;
+                    const dy = Math.sin(angle) * speed * 25;
+
+                    requestAnimationFrame(() => {
+                        particle.style.transform = `translate(${dx}px, ${dy}px)`;
+                        particle.style.opacity = '0';
+                        particle.style.width = '0px';
+                        particle.style.height = '0px';
+                    });
+
+                    setTimeout(() => {
+                        if (particle.parentNode) particle.remove();
+                    }, 800);
+                }
+            }
+
+            function weaveDream() {
+                const text = dreamInput.value;
+                if (!text.trim()) {
+                    // 轻摇输入框
+                    inputArea.style.animation = 'none';
+                    inputArea.offsetHeight; // reflow
+                    inputArea.style.animation = 'shake 0.5s ease';
+                    setTimeout(() => {
+                        inputArea.style.animation = '';
+                    }, 500);
+                    return;
+                }
+                createDreamBubble(text);
+                dreamInput.value = '';
+                dreamInput.focus();
+
+                // 按钮反馈
+                weaveBtn.style.transform = 'scale(0.9)';
+                setTimeout(() => {
+                    weaveBtn.style.transform = '';
+                }, 150);
+            }
+
+            // 添加抖动动画
+            const shakeStyle = document.createElement('style');
+            shakeStyle.textContent = `
+            @keyframes shake {
+              0%, 100% { transform: translateX(0); }
+              15% { transform: translateX(-8px); }
+              30% { transform: translateX(8px); }
+              45% { transform: translateX(-6px); }
+              60% { transform: translateX(6px); }
+              75% { transform: translateX(-3px); }
+              90% { transform: translateX(3px); }
+            }
+          `;
+            document.head.appendChild(shakeStyle);
+
+            // 事件监听
+            weaveBtn.addEventListener('click', weaveDream);
+            dreamInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    weaveDream();
+                }
+            });
+
+            // 初始聚焦
+            setTimeout(() => {
+                dreamInput.focus();
+            }, 600);
+
+            // ============ 自动演示：初始几个梦想泡泡 ============
+            const demoDreams = [
+                '环游世界 🌍',
+                '拥有一间海边小屋 🏠',
+                '学会弹钢琴 🎹',
+                '遇见一生所爱 💕',
+                '写出动人的故事 ✍️',
+                '去看极光 ✨',
+            ];
+
+            function spawnDemoBubble(index) {
+                if (index >= demoDreams.length) return;
+                const text = demoDreams[index];
+                const bubble = document.createElement('div');
+                bubble.className = 'dream-bubble';
+                bubble.textContent = '💭 ' + text;
+
+                const startX = Math.random() * (w * 0.7) + w * 0.15;
+                const startY = Math.random() * (h * 0.4) + h * 0.35;
+                bubble.style.left = startX + 'px';
+                bubble.style.top = startY + 'px';
+
+                const duration = Math.random() * 5 + 9;
+                const hue = Math.random() * 40 + 260;
+                bubble.style.animationDuration = duration + 's';
+                bubble.style.borderColor = `hsla(${hue}, 60%, 75%, 0.45)`;
+                bubble.style.boxShadow = `
+              0 0 30px hsla(${hue}, 50%, 60%, 0.3),
+              inset 0 0 20px hsla(${hue}, 50%, 65%, 0.08)
+            `;
+                bubble.style.textShadow = `0 0 15px hsla(${hue}, 50%, 70%, 0.5)`;
+
+                document.body.appendChild(bubble);
+                bubble.addEventListener('animationend', () => {
+                    if (bubble.parentNode) bubble.remove();
+                });
+
+                // 下一个
+                setTimeout(() => {
+                    spawnDemoBubble(index + 1);
+                }, Math.random() * 2000 + 1500);
+            }
+
+            // 启动演示
+            setTimeout(() => {
+                spawnDemoBubble(0);
+            }, 1500);
+
+            // 循环演示
+            setInterval(() => {
+                const existingBubbles = document.querySelectorAll('.dream-bubble');
+                if (existingBubbles.length < 4) {
+                    const randomDream = demoDreams[Math.floor(Math.random() * demoDreams.length)];
+                    const bubble = document.createElement('div');
+                    bubble.className = 'dream-bubble';
+                    bubble.textContent = '💭 ' + randomDream;
+                    const startX = Math.random() * (w * 0.7) + w * 0.15;
+                    const startY = Math.random() * (h * 0.3) + h * 0.4;
+                    bubble.style.left = startX + 'px';
+                    bubble.style.top = startY + 'px';
+                    const duration = Math.random() * 5 + 9;
+                    const hue = Math.random() * 40 + 260;
+                    bubble.style.animationDuration = duration + 's';
+                    bubble.style.borderColor = `hsla(${hue}, 60%, 75%, 0.45)`;
+                    bubble.style.boxShadow = `
+                0 0 30px hsla(${hue}, 50%, 60%, 0.3),
+                inset 0 0 20px hsla(${hue}, 50%, 65%, 0.08)
+              `;
+                    bubble.style.textShadow = `0 0 15px hsla(${hue}, 50%, 70%, 0.5)`;
+                    document.body.appendChild(bubble);
+                    bubble.addEventListener('animationend', () => {
+                        if (bubble.parentNode) bubble.remove();
+                    });
+                }
+            }, 8000);
+
+            console.log('🌙 造梦空间已就绪');
+            console.log('  写下你的梦想，让它飘向璀璨星空吧 ✨');
+            console.log('  每一个梦想都值得被看见 💫');
+        })();
+    </script>
+</body>
+</html>
